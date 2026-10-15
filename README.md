@@ -17,19 +17,21 @@ A menu-driven C++ project that helps students find suitable accommodation and al
 - **Data Structures:** Linked List, Stack, Queue
 
 ## How to Run
-Compile using GCC:
+
+**1. Compile using GCC**
 
 ```bash
-g++ -std=c++17 Student_Accommodation_System_Easy_Filters.cpp -o accommodation.exe
+g++ -std=c++17 Student_Accommodation_System.cpp -o accommodation.exe
 ```
 
-Run on Windows:
+**2. Run on Windows**
 
 ```powershell
 .\accommodation.exe
 ```
 
-Keep `accommodations.csv` in the program's working directory.
+**Note:** Keep `accommodations.csv` in the program's working directory.
+
 
 ## Team Modules
 1. Student Module
