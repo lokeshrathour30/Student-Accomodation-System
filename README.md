@@ -32,10 +32,9 @@ g++ -std=c++17 Student_Accommodation_System.cpp -o accommodation.exe
 
 **Note:** Keep `accommodations.csv` in the program's working directory.
 
-
 ## Team Modules
 1. Student Module
-2. Owner & Admin Module
+2. Owner & Admin Module — owner registration, accommodation listing management, and inquiry processing.
 3. Accommodation Classes & Data Structures
 4. File Handling & Integration
 
