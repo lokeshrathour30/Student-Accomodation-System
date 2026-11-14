@@ -66,6 +66,7 @@ int readInt(const string& prompt, int minimum, int maximum)
     }
 }
 
+
 double readDouble(const string& prompt, double minimum, double maximum)
 {
     double value;
@@ -397,7 +398,7 @@ public:
     }
 };
 
-// --------------------------- CUSTOM STACK: RECENTLY VIEWED ---------------------------
+// --------------------------- CUSTOM STACK: RECENTLY VIEWED (LAST LEFTED PAGE )---------------------------
 
 class RecentStack
 {
@@ -426,7 +427,6 @@ public:
     }
 
     bool isEmpty() const { return topNode == nullptr; }
-
     void push(int propertyId)
     {
         StackNode* newNode = new StackNode(propertyId);
@@ -693,7 +693,6 @@ Accommodation* makeAccommodation(
         return new RentRoom(id, ownerId, ownerName, ownerInfo, name, location,
                             rent, size, beds, mess, laundry, market, bathroom,
                             independent, available, distance);
-
     return nullptr;
 }
 
@@ -734,7 +733,6 @@ void saveListings(const AccommodationList& listings)
              << (p->isAvailable() ? 1 : 0) << ','
              << p->getDistanceKm() << '\n';
     }
-
     file.close();
 
     if (file)
