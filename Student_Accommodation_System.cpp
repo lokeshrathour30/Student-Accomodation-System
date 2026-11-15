@@ -9,6 +9,7 @@
 #include <cmath>        // STL: checking decimal values
 #include <cctype>       // STL: safe character conversion
 #include <cstdlib>      // exit() when terminal input reaches EOF
+
 using namespace std;    // STL: allows standard-library names without std::
 
 const string DATA_FILE = "accommodations.csv";
@@ -65,7 +66,6 @@ int readInt(const string& prompt, int minimum, int maximum)
         clearInputLine();
     }
 }
-
 
 double readDouble(const string& prompt, double minimum, double maximum)
 {
@@ -398,7 +398,7 @@ public:
     }
 };
 
-// --------------------------- CUSTOM STACK: RECENTLY VIEWED (LAST LEFTED PAGE )---------------------------
+// --------------------------- CUSTOM STACK: RECENTLY VIEWED ---------------------------
 
 class RecentStack
 {
@@ -427,6 +427,7 @@ public:
     }
 
     bool isEmpty() const { return topNode == nullptr; }
+
     void push(int propertyId)
     {
         StackNode* newNode = new StackNode(propertyId);
@@ -693,6 +694,7 @@ Accommodation* makeAccommodation(
         return new RentRoom(id, ownerId, ownerName, ownerInfo, name, location,
                             rent, size, beds, mess, laundry, market, bathroom,
                             independent, available, distance);
+
     return nullptr;
 }
 
@@ -733,6 +735,7 @@ void saveListings(const AccommodationList& listings)
              << (p->isAvailable() ? 1 : 0) << ','
              << p->getDistanceKm() << '\n';
     }
+
     file.close();
 
     if (file)
@@ -843,26 +846,6 @@ void addSampleListings(AccommodationList& listings)
     listings.add(new PG(1005, 102, "Meera Joshi", "Demo contact: 9000000102",
         "Independent Studio PG", "Rajpur Road, Dehradun", 9500, 300, 1,
         true, true, true, true, true, true, 6.0));
-
-    listings.add(new PG(1006, 101, "Aarav Sharma", "Demo contact: 9000000101",
-        "Campus Nest PG", "Sudhowala, Dehradun", 6800, 200, 1,
-        true, false, true, true, false, true, 4.8));
-
-    listings.add(new Flat(1007, 102, "Meera Joshi", "Demo contact: 9000000102",
-        "Doon Scholars Flat", "Kargi Chowk, Dehradun", 14500, 780, 3,
-        false, true, true, true, true, true, 7.2));
-
-    listings.add(new Hostel(1008, 103, "Rohan Negi", "Demo contact: 9000000103",
-        "Valley View Hostel", "Prem Nagar, Dehradun", 5500, 160, 3,
-        true, true, true, true, false, true, 3.6));
-
-    listings.add(new RentRoom(1009, 101, "Aarav Sharma", "Demo contact: 9000000101",
-        "Sunrise Single Room", "Nehru Colony, Dehradun", 4200, 125, 1,
-        false, false, true, true, false, true, 6.4));
-
-    listings.add(new Flat(1010, 102, "Meera Joshi", "Demo contact: 9000000102",
-        "Oakwood Independent Flat", "Vijay Park, Dehradun", 11000, 540, 2,
-        false, true, true, true, true, true, 3.9));
 }
 
 // --------------------------- SEARCH AND FILTERING ---------------------------
@@ -870,138 +853,35 @@ void addSampleListings(AccommodationList& listings)
 void searchListings(const AccommodationList& listings)
 {
     cout << "\n--- Search and Filter ---\n";
-    cout << "Choose only the filters you care about. Everything else uses its default.\n\n";
-    cout << " 1. Keyword / location\n"
-         << " 2. Accommodation type (PG / Flat / Hostel / Room)\n"
-         << " 3. Maximum monthly rent\n"
-         << " 4. Number of beds / seaters\n"
-         << " 5. Mess / food facility\n"
-         << " 6. Laundry facility\n"
-         << " 7. Attached bathroom\n"
-         << " 8. Nearby market\n"
-         << " 9. Independent or shared accommodation\n"
-         << "10. Minimum room size\n"
-         << "11. Maximum distance from university\n"
-         << "12. Sort results by rent\n"
-         << "13. Availability (include unavailable listings)\n"
-         << "\nEnter option numbers separated by commas (example: 1,3,5).\n"
-         << "Enter 0 to skip filters and show available listings: ";
+    double maxRent = readDouble("Maximum monthly rent (0 = no limit): ", 0, 10000000);
 
-    vector<int> selected;
-    while (true)
-    {
-        string line;
-        if (!getline(cin, line))
-        {
-            cout << "\nInput stream closed. Exiting safely.\n";
-            exit(0);
-        }
-        selected.clear();
-        stringstream input(line);
-        string token;
-        bool valid = true;
-        bool choseZero = false;
-        while (getline(input, token, ','))
-        {
-            // Permit spaces around the option number.
-            token.erase(0, token.find_first_not_of(" \t"));
-            size_t last = token.find_last_not_of(" \t");
-            if (last == string::npos) { valid = false; break; }
-            token.erase(last + 1);
-            stringstream numberInput(token);
-            int number;
-            char extra;
-            if (!(numberInput >> number) || (numberInput >> extra) || number < 0 || number > 13)
-            {
-                valid = false;
-                break;
-            }
-            if (number == 0)
-                choseZero = true;
-            else if (find(selected.begin(), selected.end(), number) == selected.end())
-                selected.push_back(number);
-        }
-        if (choseZero && !selected.empty())
-            valid = false;
-        if (valid && (choseZero || !selected.empty()))
-        {
-            if (choseZero) selected.clear();
-            break;
-        }
-        cout << "Invalid choice. Enter numbers from 1 to 13 separated by commas, or just 0: ";
-    }
+    cout << "Type: 0 = Any, 1 = PG, 2 = Flat, 3 = Hostel, 4 = Room\n";
+    int typeChoice = readInt("Choose type: ", 0, 4);
 
-    auto wants = [&selected](int option)
-    {
-        return find(selected.begin(), selected.end(), option) != selected.end();
-    };
+    int minBeds = readInt("Minimum beds/occupancy (0 = any): ", 0, 100);
+    double minSize = readDouble("Minimum room size in sq. ft. (0 = any): ", 0, 100000);
 
-    // Unselected filters are disabled by default.
-    string keyword;
-    if (wants(1))
-    {
-        cout << "Enter property name or location keyword (blank = no keyword): ";
-        getline(cin, keyword);
-        keyword = lowerCase(keyword);
-    }
-
-    double maxRent = wants(3) ? readDouble("Maximum monthly rent in rupees: ", 1, 10000000) : 0;
-
-    int typeChoice = 0;
-    if (wants(2))
-    {
-        cout << "Type: 1 = PG, 2 = Flat, 3 = Hostel, 4 = Room, 0 = Any\n";
-        typeChoice = readInt("Choose type: ", 0, 4);
-    }
-
-    int bedsChoice = wants(4) ? readInt("Exact number of beds/occupancy (0 = any): ", 0, 100) : 0;
-    int messChoice = 0;
-    if (wants(5))
-    {
-        cout << "Mess: 1 = Required, 2 = Not required, 0 = Any\n";
-        messChoice = readInt("Choose mess preference: ", 0, 2);
-    }
-    int laundryChoice = 0;
-    if (wants(6))
-    {
-        cout << "Laundry: 1 = Required, 2 = Not required, 0 = Any\n";
-        laundryChoice = readInt("Choose laundry preference: ", 0, 2);
-    }
-    int bathroomChoice = 0;
-    if (wants(7))
-    {
-        cout << "Bathroom: 1 = Available, 2 = Not available, 0 = Any\n";
-        bathroomChoice = readInt("Choose bathroom preference: ", 0, 2);
-    }
-    int marketChoice = 0;
-    if (wants(8))
-    {
-        cout << "Nearby market: 1 = Required, 2 = Not required, 0 = Any\n";
-        marketChoice = readInt("Choose market preference: ", 0, 2);
-    }
-    int independentChoice = 0;
-    if (wants(9))
-    {
-        cout << "Arrangement: 1 = Independent, 2 = Shared/dependent, 0 = Any\n";
-        independentChoice = readInt("Choose arrangement: ", 0, 2);
-    }
-    double minSize = wants(10) ? readDouble("Minimum room size in square feet: ", 1, 100000) : 0;
-    double maxDistance = wants(11) ? readDouble("Maximum distance from university in km: ", 0.1, 10000) : 0;
-    bool includeUnavailable = wants(13) && readYesNo("Include unavailable listings too?");
+    cout << "Mess: 0 = Any, 1 = Required, 2 = Not required\n";
+    int messChoice = readInt("Choose mess preference: ", 0, 2);
+    cout << "Laundry: 0 = Any, 1 = Required, 2 = Not required\n";
+    int laundryChoice = readInt("Choose laundry preference: ", 0, 2);
+    cout << "Nearby market: 0 = Any, 1 = Required, 2 = Not required\n";
+    int marketChoice = readInt("Choose market preference: ", 0, 2);
+    cout << "Bathroom: 0 = Any, 1 = Available, 2 = Not available\n";
+    int bathroomChoice = readInt("Choose bathroom preference: ", 0, 2);
+    cout << "Accommodation: 0 = Any, 1 = Independent, 2 = Dependent/shared\n";
+    int independentChoice = readInt("Choose accommodation preference: ", 0, 2);
+    double maxDistance = readDouble("Maximum distance from university in km (0 = any): ",
+                                    0, 10000);
 
     vector<Accommodation*> results; // STL: temporary list of matches
     vector<Accommodation*> all = listings.getAllPointers();
 
     for (Accommodation* p : all)
     {
-        // Available listings are shown by default. Option 13 can include unavailable ones.
-        if (!includeUnavailable && !p->isAvailable())
+        if (!p->isAvailable())
             continue;
 
-        if (!keyword.empty() &&
-            lowerCase(p->getPropertyName()).find(keyword) == string::npos &&
-            lowerCase(p->getLocation()).find(keyword) == string::npos)
-            continue;
         if (maxRent > 0 && p->getRent() > maxRent)
             continue;
 
@@ -1012,20 +892,23 @@ void searchListings(const AccommodationList& listings)
             else if (typeChoice == 2) wantedType = "Flat";
             else if (typeChoice == 3) wantedType = "Hostel";
             else wantedType = "Room";
+
             if (p->getType() != wantedType)
                 continue;
         }
 
-        if (bedsChoice > 0 && p->getBeds() != bedsChoice) continue;
-        if (minSize > 0 && p->getRoomSize() < minSize) continue;
+        if (minBeds > 0 && p->getBeds() < minBeds)
+            continue;
+        if (minSize > 0 && p->getRoomSize() < minSize)
+            continue;
         if (messChoice == 1 && !p->hasMess()) continue;
         if (messChoice == 2 && p->hasMess()) continue;
         if (laundryChoice == 1 && !p->hasLaundry()) continue;
         if (laundryChoice == 2 && p->hasLaundry()) continue;
-        if (bathroomChoice == 1 && !p->hasBathroom()) continue;
-        if (bathroomChoice == 2 && p->hasBathroom()) continue;
         if (marketChoice == 1 && !p->hasMarket()) continue;
         if (marketChoice == 2 && p->hasMarket()) continue;
+        if (bathroomChoice == 1 && !p->hasBathroom()) continue;
+        if (bathroomChoice == 2 && p->hasBathroom()) continue;
         if (independentChoice == 1 && !p->isIndependent()) continue;
         if (independentChoice == 2 && p->isIndependent()) continue;
         if (maxDistance > 0 && p->getDistanceKm() > maxDistance) continue;
@@ -1035,22 +918,18 @@ void searchListings(const AccommodationList& listings)
 
     if (results.empty())
     {
-        cout << "No listings match the selected conditions. Try removing one or more filters.\n";
+        cout << "No listings match all the selected conditions.\n";
         return;
     }
 
-    if (wants(12))
+    if (readYesNo("Sort matching results by rent, lowest first?"))
     {
-        cout << "Sort by rent: 1 = Lowest to highest, 2 = Highest to lowest, 0 = No sorting\n";
-        int sortChoice = readInt("Choose sorting: ", 0, 2);
-        if (sortChoice != 0)
-        {
-            sort(results.begin(), results.end(), [sortChoice](const Accommodation* a, const Accommodation* b)
-            {
-                if (sortChoice == 1) return a->getRent() < b->getRent();
-                return a->getRent() > b->getRent();
-            });
-        }
+        // STL: sort orders the vector using a comparison function.
+        sort(results.begin(), results.end(),
+             [](const Accommodation* a, const Accommodation* b)
+             {
+                 return a->getRent() < b->getRent();
+             });
     }
 
     cout << "\nMatching listings: " << results.size() << '\n';
@@ -1067,141 +946,20 @@ struct OwnerAccount
     string contact;
 };
 
-// STL: vector stores the demo accounts and newly registered owners.
-vector<OwnerAccount> ownerAccounts = {
+const vector<OwnerAccount> DEMO_OWNERS = {
     {101, "Aarav Sharma", "Demo contact: 9000000101"},
     {102, "Meera Joshi", "Demo contact: 9000000102"},
     {103, "Rohan Negi", "Demo contact: 9000000103"}
-};
-
-const string OWNER_FILE = "owners.csv";
+}; // STL: vector stores the fixed demo accounts
 
 const OwnerAccount* findOwner(int ownerId)
 {
-    for (const OwnerAccount& owner : ownerAccounts)
+    for (const OwnerAccount& owner : DEMO_OWNERS)
     {
         if (owner.id == ownerId)
             return &owner;
     }
     return nullptr;
-}
-
-void saveOwnerAccounts()
-{
-    ofstream file(OWNER_FILE);
-
-    if (!file)
-    {
-        cout << "ERROR: Could not save owner accounts to "
-             << OWNER_FILE << ".\n";
-        return;
-    }
-
-    file << "ownerId,name,contact\n";
-    for (const OwnerAccount& owner : ownerAccounts)
-    {
-        file << owner.id << ','
-             << csvEscape(owner.name) << ','
-             << csvEscape(owner.contact) << '\n';
-    }
-
-    file.close();
-    if (file)
-        cout << "Owner accounts saved to " << OWNER_FILE << ".\n";
-    else
-        cout << "ERROR: A problem occurred while saving "
-             << OWNER_FILE << ".\n";
-}
-
-void loadOwnerAccounts()
-{
-    ifstream file(OWNER_FILE);
-
-    // First run: keep the built-in demo accounts and create owners.csv.
-    if (!file)
-    {
-        saveOwnerAccounts();
-        return;
-    }
-
-    string line;
-    vector<string> fields; // STL: parsed columns from owners.csv
-    int loadedNewOwners = 0;
-    bool firstLine = true;
-
-    while (getline(file, line))
-    {
-        if (line.empty())
-            continue;
-
-        if (firstLine)
-        {
-            firstLine = false;
-            if (line.find("ownerId,name,contact") == 0)
-                continue;
-        }
-
-        if (!parseCsvLine(line, fields) || fields.size() != 3)
-        {
-            cout << "Skipping malformed owner record.\n";
-            continue;
-        }
-
-        int id;
-        if (!parseIntField(fields[0], id) || id <= 0 ||
-            fields[1].empty() || fields[2].empty())
-        {
-            cout << "Skipping invalid owner record.\n";
-            continue;
-        }
-
-        bool alreadyExists = false;
-        for (const OwnerAccount& owner : ownerAccounts)
-        {
-            if (owner.id == id)
-            {
-                alreadyExists = true;
-                break;
-            }
-        }
-
-        if (!alreadyExists)
-        {
-            ownerAccounts.push_back({id, fields[1], fields[2]});
-            loadedNewOwners++;
-        }
-    }
-
-    cout << "Loaded " << loadedNewOwners
-         << " additional owner account(s) from " << OWNER_FILE << ".\n";
-
-    // Ensure the file contains the demo accounts and all registered owners.
-    saveOwnerAccounts();
-}
-
-int registerNewOwner()
-{
-    cout << "\n========== NEW OWNER REGISTRATION ==========\n";
-    string name = readNonEmptyLine("Enter your full name: ");
-    string contact = readNonEmptyLine(
-        "Enter your contact information (phone/email): ");
-
-    int largestId = 100;
-    for (const OwnerAccount& owner : ownerAccounts)
-    {
-        if (owner.id > largestId)
-            largestId = owner.id;
-    }
-    int newId = largestId + 1;
-
-    ownerAccounts.push_back({newId, name, contact});
-
-    cout << "\nRegistration successful!\n";
-    cout << "Your new owner ID is: " << newId << '\n';
-    cout << "Keep this ID safe; you will need it to log in next time.\n";
-    saveOwnerAccounts();
-
-    return newId;
 }
 
 void addAccommodation(AccommodationList& listings, int ownerId)
@@ -1379,9 +1137,10 @@ int main()
 
     cout << "============================================\n"
          << "     STUDENT ACCOMMODATION SYSTEM\n"
-         << "============================================\n";
+         << "============================================\n"
+         << "Academic demo only. Sample listings are fictional.\n"
+         << "Availability is manually recorded, not real-time.\n";
 
-    loadOwnerAccounts(); // Load registered owners before owner login.
     bool loaded = loadListings(listings);
 
     if (!loaded)
@@ -1421,23 +1180,9 @@ int main()
             studentMenu(listings, recent, inquiries);
         else if (choice == 2)
         {
-            cout << "\n========== OWNER ACCESS ==========\n"
-                 << "1. Log in as an existing owner\n"
-                 << "2. Register as a new owner\n"
-                 << "3. Return to main menu\n";
-
-            int ownerChoice = readInt("Choose an option: ", 1, 3);
-
-            if (ownerChoice == 1)
-            {
-                int ownerId = readInt("Enter your owner ID: ", 1, 1000000000);
-                ownerMenu(listings, inquiries, ownerId);
-            }
-            else if (ownerChoice == 2)
-            {
-                int ownerId = registerNewOwner();
-                ownerMenu(listings, inquiries, ownerId);
-            }
+            cout << "\nDemo owner IDs: 101, 102, 103\n";
+            int ownerId = readInt("Enter owner ID: ", 1, 1000000000);
+            ownerMenu(listings, inquiries, ownerId);
         }
         else
         {
